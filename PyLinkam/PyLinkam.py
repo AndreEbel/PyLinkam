@@ -32,7 +32,7 @@ class programmer(object):
                                 timeout=0,
                                 parity=serial.PARITY_NONE,
                                 rtscts=1)
-
+        
     def read(self):
         """
         Serial read 
@@ -153,7 +153,22 @@ class programmer(object):
         T_C = int(hex_temp, 16)/10
         self.T_C  = T_C
         return T_C
-        
+    
+    @property
+    def temperature(self): 
+        """
+        read T_byte and decode the temperature part to return only the temperature 
+
+        Returns
+        -------
+        temperature : float
+             temperature in degree Celsius with 0.1°C precision
+
+        """
+        self.get_T_bytes()
+        temperature = self.decode_temperature()
+        return temperature
+    
     def decode_status_byte(self):
         """
         function that decode the status byt read from the controller
@@ -180,6 +195,22 @@ class programmer(object):
         else: 
             status = 'problem reading SB1'
         return status
+    
+    @property
+    def status(self): 
+        """
+        read T_byte and decode its status byte part to return only the status message
+
+        Returns
+        -------
+        status : string
+            status message describing the current status of the machine
+
+        """
+        self.get_T_bytes()
+        status = self.decode_status_byte()
+        return status 
+    
     def decode_error_byte(self):
         """
         function that decode the error byte read from the controller
@@ -209,6 +240,22 @@ class programmer(object):
         if error_message == '':
             error_message += 'no error'
         return error_message
+    
+    @property
+    def error(self): 
+        """
+        read T_byte and decode its status byte part to return only the status message
+
+        Returns
+        -------
+        error : string
+            error string 
+
+        """
+        self.get_T_bytes()
+        error = self.decode_error_byte()
+        return error
+    
     
     def __del__(self):
         self.ser.close()
