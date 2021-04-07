@@ -15,6 +15,8 @@ class programmer(object):
     T_Bytes = None
     T_C_bytes = None
     T_C = None 
+    rate = None
+    limit = None
     def __init__(self, port):
         """
         programmer object creator
@@ -29,9 +31,10 @@ class programmer(object):
                                 baudrate=19200,
                                 bytesize=8,
                                 stopbits = serial.STOPBITS_ONE,         
-                                timeout=0,
+                                timeout=0.01,
                                 parity=serial.PARITY_NONE,
                                 rtscts=1)
+        self.get_T_bytes()
         
     def read(self):
         """
@@ -80,7 +83,7 @@ class programmer(object):
           return answer 
     
    
-    def rate_command(self, rate): 
+    def set_rate(self, rate): 
         """
         set the heating or cooling rate of a ramp
         
@@ -90,10 +93,26 @@ class programmer(object):
             °C/min, resolution 0.01°C/min
 
         """
+        self.rate= rate
         command = ('R1%d' % (rate*100))
-        self.write(command)
+        self.query(command)
         
-    def limit_command(self, limit):
+    # @property
+    # def rate(self): 
+    #     """
+    #     set the heating or cooling rate of a ramp
+        
+    #     Parameters
+    #     ----------
+    #     rate : float
+    #         °C/min, resolution 0.01°C/min
+
+    #     """
+    #     command = ('R1')
+    #     rate = self.query(command)
+    #     return rate
+        
+    def set_limit(self, limit):
         """
         set the limit temperature of a ramp
         
@@ -103,21 +122,22 @@ class programmer(object):
             °C, resolution 0.1°C
 
         """
+        self.limit = limit
         command = 'L1%d' %(limit*10)
-        self.write(command)
+        self.query(command)
         
     def start(self):
         """
         Tells the programmer to start heating or cooling at the rate specified in R1 and to the limite set by L1
         When the limit is reached, the SB1 byte will return 30H
         """
-        self.write('S')
+        self.query('S')
         
     def stop(self): 
         """
         Tells the programmer to stop heating or cooling
         """
-        self.write('E')
+        self.query('E')
     
     def hold(self): 
         """
@@ -125,7 +145,7 @@ class programmer(object):
         When holding at the limit value either a heat, cool or a hold command will chang the programmer function. 
         When the programmer is holding at the specified limit the SB1 byte will return 40H, otherwise 50H will be returned.
         """
-        self.write('O')
+        self.query('O')
     
     def get_T_bytes(self): 
         """
@@ -165,7 +185,7 @@ class programmer(object):
              temperature in degree Celsius with 0.1°C precision
 
         """
-        self.get_T_bytes()
+        #self.get_T_bytes()
         temperature = self.decode_temperature()
         return temperature
     
@@ -207,7 +227,7 @@ class programmer(object):
             status message describing the current status of the machine
 
         """
-        self.get_T_bytes()
+        #self.get_T_bytes()
         status = self.decode_status_byte()
         return status 
     
@@ -252,7 +272,7 @@ class programmer(object):
             error string 
 
         """
-        self.get_T_bytes()
+        #self.get_T_bytes()
         error = self.decode_error_byte()
         return error
     
