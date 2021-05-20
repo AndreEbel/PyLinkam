@@ -34,7 +34,10 @@ class programmer(object):
                                 timeout=0.01,
                                 parity=serial.PARITY_NONE,
                                 rtscts=1)
-        self.get_T_bytes()
+        #self.get_T_bytes()
+        # initialize limit and rate 
+        self.set_limit(1)
+        self.set_rate(1)
         
     def read(self):
         """
@@ -93,24 +96,13 @@ class programmer(object):
             °C/min, resolution 0.01°C/min
 
         """
-        self.rate= rate
-        command = ('R1%d' % (rate*100))
-        self.query(command)
-        
-    # @property
-    # def rate(self): 
-    #     """
-    #     set the heating or cooling rate of a ramp
-        
-    #     Parameters
-    #     ----------
-    #     rate : float
-    #         °C/min, resolution 0.01°C/min
-
-    #     """
-    #     command = ('R1')
-    #     rate = self.query(command)
-    #     return rate
+        max_rate = 15 #°C/min
+        if rate < max_rate:
+            command = ('R1%d' % (rate*100))
+            self.query(command)
+            self.rate= rate
+        else: 
+            print('max rate is 15 °C/min')
         
     def set_limit(self, limit):
         """
@@ -122,10 +114,15 @@ class programmer(object):
             °C, resolution 0.1°C
 
         """
-        self.limit = limit
-        command = 'L1%d' %(limit*10)
-        self.query(command)
+        max_limit = 1400
+        if limit < max_limit: 
         
+            command = 'L1%d' %(limit*10)
+            self.query(command)
+            self.limit = limit
+        else: 
+            print('max. limit is 1400°C')
+            
     def start(self):
         """
         Tells the programmer to start heating or cooling at the rate specified in R1 and to the limite set by L1
@@ -153,6 +150,7 @@ class programmer(object):
         """
         answer = self.query('T')
         self.T_bytes = bytearray(answer)
+        #print(len(self.T_bytes))
         self.SB1 = self.T_bytes[0]
         self.EB1 = self.T_bytes[1]
         self.T_C_bytes = self.T_bytes[6:10]
@@ -185,7 +183,7 @@ class programmer(object):
              temperature in degree Celsius with 0.1°C precision
 
         """
-        #self.get_T_bytes()
+        self.get_T_bytes()
         temperature = self.decode_temperature()
         return temperature
     
@@ -227,7 +225,7 @@ class programmer(object):
             status message describing the current status of the machine
 
         """
-        #self.get_T_bytes()
+        self.get_T_bytes()
         status = self.decode_status_byte()
         return status 
     
@@ -272,7 +270,7 @@ class programmer(object):
             error string 
 
         """
-        #self.get_T_bytes()
+        self.get_T_bytes()
         error = self.decode_error_byte()
         return error
     
