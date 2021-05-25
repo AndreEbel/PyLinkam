@@ -2,7 +2,7 @@
 
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import  QWidget,QLineEdit, QLabel,QVBoxLayout, QHBoxLayout, QPushButton#,QTabWidget
-from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtGui import QDoubleValidator, QIntValidator
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QThread
 import numpy as np
 
@@ -25,12 +25,14 @@ class ControllerThread(QThread):
             print('running')
         # read the temperature, status and error from the controller
         while self.on:
-            self.controller.get_T_bytes()
+            #self.controller.get_T_bytes()
             self.temperature.emit(self.controller.temperature)
+            sleep(self.sleep_time)
             self.status.emit(self.controller.status)
+            sleep(self.sleep_time)
             self.error.emit(self.controller.error)
             sleep(self.sleep_time)
-        
+        self.status.emit('Furnace off')
     def stop(self):
         """Sets on flag to False and waits for thread to finish"""
         self.on = False
@@ -80,19 +82,17 @@ class ControllerSimple(QWidget):
         
         #rate
         self.rate_input = QLineEdit()
-        self.rate_input.setValidator(QDoubleValidator(decimals = 2, 
-                                                            notation=QtGui.QDoubleValidator.StandardNotation))
-        self.rate_input.setMaxLength(8)
+        self.rate_input.setValidator(QIntValidator(top = 10))
+        self.rate_input.setMaxLength(2)
         self.rate_input.setText('0')
         self.rate_input.setAlignment(Qt.AlignRight)
         self.rate_button = QPushButton('Set rate (°C)',self)
         self.rate_button.clicked.connect(self.ClickSetRate)
         #limit
         self.limit_input = QLineEdit()
-        self.limit_input.setValidator(QDoubleValidator(decimals = 2, 
-                                                            notation=QtGui.QDoubleValidator.StandardNotation))
+        self.limit_input.setValidator(QIntValidator(top = 1500))
         self.limit_input.setText('0')
-        self.limit_input.setMaxLength(8)
+        self.limit_input.setMaxLength(3)
         self.limit_input.setAlignment(Qt.AlignRight)
         self.limit_button = QPushButton('Set limit (°C)',self)
         self.limit_button.clicked.connect(self.ClickSetLimit)
