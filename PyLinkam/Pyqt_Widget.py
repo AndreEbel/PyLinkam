@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtGui
+#from PyQt5 import QtGui
 from PyQt5.QtWidgets import  QWidget,QLineEdit, QLabel,QVBoxLayout, QHBoxLayout, QPushButton#,QTabWidget
-from PyQt5.QtGui import QDoubleValidator, QIntValidator
+from PyQt5.QtGui import QIntValidator # QDoubleValidator,
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QThread
 import numpy as np
 
@@ -14,7 +14,7 @@ class ControllerThread(QThread):
     status = pyqtSignal(str)
     error = pyqtSignal(str)
     on = False
-    sleep_time = 0.1
+    sleep_time = 1
     def __init__(self, controller, verbose = True):
         super().__init__()
         self.controller = controller
@@ -23,6 +23,7 @@ class ControllerThread(QThread):
     def run(self):
         if self.verbose: 
             print('running')
+        self.on = True
         # read the temperature, status and error from the controller
         while self.on:
             #self.controller.get_T_bytes()
@@ -43,6 +44,7 @@ class ControllerSimple(QWidget):
         super().__init__()
         self.verbose = verbose
         self.controller_thread = ControllerThread
+        self.controller_thread.start()
         self.setWindowTitle(ControllerName)
         # start the thread
         self.controller_thread.start()
@@ -55,7 +57,7 @@ class ControllerSimple(QWidget):
         self.vbox = QVBoxLayout()
         
         # 1st row: Display, status, error
-        display_layout = QVBoxLayout()
+        display_layout = QHBoxLayout()
         self.temperature_display= QLabel('No value')
         self.status_display= QLabel('No value')
         self.error_display= QLabel('No value')
@@ -92,7 +94,7 @@ class ControllerSimple(QWidget):
         self.limit_input = QLineEdit()
         self.limit_input.setValidator(QIntValidator(top = 1500))
         self.limit_input.setText('0')
-        self.limit_input.setMaxLength(3)
+        self.limit_input.setMaxLength(4)
         self.limit_input.setAlignment(Qt.AlignRight)
         self.limit_button = QPushButton('Set limit (°C)',self)
         self.limit_button.clicked.connect(self.ClickSetLimit)
@@ -138,40 +140,34 @@ class ControllerSimple(QWidget):
         if self.verbose: 
             print('start program')
         self.ss_button.clicked.disconnect(self.ClickStart)
-        self.controller_thread.stop()
+        self.controller_thread.controller.start()
         if self.verbose: 
-            print('thread stopped')
-        if not self.controller_thread.on: 
-            self.controller_thread.controller.start()
-            if self.verbose: 
-                print('start command passed')
-                print(self.controller_thread.controller.read())
-        self.controller_thread.start()
-        self.controller_thread.on = True
-        if self.verbose: 
-            print('thread restarted')
+            print('start command passed')
+       
         # Change button to stop
         self.ss_button.setText('Stop')
+        self.hold_button.setText('Hold')
         
         # Stop the video if button clicked
+        self.hold_button.clicked.connect(self.ClickHold)
         self.ss_button.clicked.connect(self.ClickStop)
     
     # Activates when Start/Stop video button is clicked to Stop (ss_video)
     def ClickStop(self):
         self.ss_button.clicked.disconnect(self.ClickStop)   
-        self.controller_thread.stop()
         self.controller_thread.controller.stop()
-        self.controller_thread.start()
-        self.controller_thread.on = True
         self.ss_button.setText('Start')
         self.ss_button.clicked.connect(self.ClickStart)
        
     
     def ClickHold(self):
-        self.ss_button.clicked.disconnect(self.ClickStop)   
-        self.controller_thread.controller.stop()
-        self.ss_button.setText('Start')
+        self.hold_button.clicked.disconnect(self.ClickHold)
+        self.ss_button.clicked.disconnect(self.ClickStop) 
         self.ss_button.clicked.connect(self.ClickStart)
+        self.ss_button.setText('Start')
+        self.controller_thread.controller.hold()
+        self.hold_button.setText('Holding')
+       
        
         
     def ClickSetRate(self): 
@@ -179,16 +175,21 @@ class ControllerSimple(QWidget):
         if r !='': 
             e = float(r.replace(',', '.'))
             self.controller_thread.controller.set_rate(e)
+            self.rate_input.setText(str(self.controller_thread.controller.rate))
         if self.verbose: 
-            print(self.controller_thread.controller.rate)
+            print('input', e)
+            print('rate', self.controller_thread.controller.rate)
             
     def ClickSetLimit(self): 
         r = self.limit_input.text()
         if r !='': 
             e = float(r.replace(',', '.'))
             self.controller_thread.controller.set_limit(e)
+            self.limit_input.setText(str(self.controller_thread.controller.limit))
+            print('input', e)
         if self.verbose: 
-            print(self.controller_thread.controller.limit)
+            print('input', e)
+            print('limit',self.controller_thread.controller.limit)
         
     def closeEvent(self, event):
         if self.controller_thread.on: 
