@@ -1,6 +1,7 @@
 __version__ = '1.0.0'
 import serial
 import threading
+from time import sleep
 
 class programmer(object):
     """ 
@@ -36,8 +37,8 @@ class programmer(object):
                                 rtscts=1)
         #self.get_T_bytes()
         # initialize limit and rate 
-        self.set_limit(1)
-        self.set_rate(1)
+        #self.set_limit(1)
+        #self.set_rate(1)
         
     def read(self):
         """
@@ -82,6 +83,7 @@ class programmer(object):
         """
         with self.lock:
           self.write(command)
+          sleep(0.008) #min delay is 8 ms according to documentation
           answer =  self.read()
           return answer 
     
@@ -151,9 +153,10 @@ class programmer(object):
         answer = self.query('T')
         self.T_bytes = bytearray(answer)
         #print(len(self.T_bytes))
-        self.SB1 = self.T_bytes[0]
-        self.EB1 = self.T_bytes[1]
-        self.T_C_bytes = self.T_bytes[6:10]
+        if len(self.T_bytes)>0: 
+            self.SB1 = self.T_bytes[0]
+            self.EB1 = self.T_bytes[1]
+            self.T_C_bytes = self.T_bytes[6:10]
         
     def decode_temperature(self):
         """
