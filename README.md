@@ -29,7 +29,7 @@ or until the program is closed:
 TMS94.stop()
 ```
 
-Before shutting down yout python program, make sure to close the serial communication: 
+Before shutting down your python program, make sure to close the serial communication: 
 ```
 TMS94.ser.close()
 ```
