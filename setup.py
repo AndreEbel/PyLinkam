@@ -69,7 +69,7 @@ setup(
 	#
 	# This field corresponds to the "Home-Page" metadata field:
 	# https://packaging.python.org/specifications/core-metadata/#home-page-optional
-	#url='https://github.com/madvid/my_minipack',  # Optional
+	#url='',  # Optional
 
 	# This should be your name or the name of the organization which owns the
 	# project.
@@ -94,7 +94,8 @@ setup(
 		'Intended Audience :: Education',
 		
 		# Indicate what your project is about
-		'Topic :: Software Development :: Build Tools',
+		'Topic :: Scientific/Engineering',
+		'Topic :: Scientific/Engineering :: Human Machine Interfaces',
 
 		# Pick your license as you wish
 		'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
@@ -116,7 +117,7 @@ setup(
 
 	# When your source code is in a subdirectory under the project root, e.g.
 	# `src/`, it is necessary to specify the `package_dir` argument.
-	#package_dir={'': 'TexNet'},  # Optional
+	#package_dir={'': ''},  # Optional
 
 	# You can just specify package directories manually here if your project is
 	# simple. Or you can use find_packages().
@@ -125,7 +126,7 @@ setup(
 	# the `py_modules` argument instead as follows, which will expect a file
 	# called `my_module.py` to exist:
 	#
-	#py_modules=["TexNet"],
+	#py_modules=[""],
 	#
 	packages=find_packages(where=''),  # Required
 
@@ -141,7 +142,7 @@ setup(
 	#
 	# For an analysis of "install_requires" vs pip's requirements files see:
 	# https://packaging.python.org/en/latest/requirements.html
-	#install_requires=['peppercorn'],  # Optional
+	#install_requires=[''],  # Optional
 
 	# List additional groups of dependencies here (e.g. development
 	# dependencies). Users will be able to install these using the "extras"
