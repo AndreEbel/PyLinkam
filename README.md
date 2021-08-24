@@ -1,6 +1,11 @@
 # PyLinkam
 Python package for controlling the Linkam TMS94 programmer via RS232
- 
+
+__Disclaimer:__
+Most USB to RS232 adapters do not have the correct wiring to communicate with the TMS94 programmer. 
+You may need to wire a custom male to female 9 pin connector to make it work. 
+See the 'Cable connections' section page 3 of the documentation in the doc folder for more details. 
+
 ## Basic usage 
 
 ```
