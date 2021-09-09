@@ -2,6 +2,7 @@ __version__ = '1.0.0'
 import serial
 import threading
 from time import sleep
+import time
 
 class programmer(object):
     """ 
@@ -282,3 +283,60 @@ class programmer(object):
         self.ser.close()
         print('serial connection off')
 
+
+class monitoring(object):
+    """ Threading example class
+    The run() method will be started and it will run in the background
+    until the application exits.
+    """
+
+    def __init__(self,controller, interval=1, file = None):
+        """
+        Constructor
+
+        Parameters
+        ----------
+        controller : programmer object
+            programmer connected to the heating stage whose temperature is read 
+        interval : int, optional
+            time interval between readings. The default is 1.
+        file : string, optional
+            file where temperature is saved as a function of time. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.interval = interval
+        self.controller = controller
+        
+        self.file = file
+        if type(self.file)== str:
+            self.csv_file = open(self.file, "w")
+            
+        self.record = False
+        thread = threading.Thread(target=self.run, args=())
+        thread.daemon = True                            # Daemonize thread
+        thread.start()                                  # Start the execution
+
+    def run(self):
+        """ Method that runs forever """
+        i = 0
+        while self.record:
+            if i ==0: 
+                t0 = time.time()
+            delta_t = time.time() - t0
+            
+            # get the T byte once per time step
+            self.controller.get_T_bytes()
+            # decode T byte
+            T_C = self.decode_temperature()
+            status = self.decode_status_byte()
+            error = self.decode_error_byte()
+            
+            #save to file
+            if self.file: 
+                self.csv_file.write(f"{delta_t}, {T_C}, {status}, {error}\n")
+            sleep(self.interval)
+            i+=1
