@@ -278,30 +278,16 @@ class programmer(object):
         error = self.decode_error_byte()
         return error
     
-    
-    def __del__(self):
-        self.ser.close()
-        print('serial connection off')
-
-
-class monitoring(object):
-    """ Threading example class
-    The run() method will be started and it will run in the background
-    until the application exits.
-    """
-
-    def __init__(self,controller, interval=1, file = None):
+    def datalog(self,interval=1, file = 'datalog.csv' ):
         """
-        Constructor
+        start a data logging thread in the background
 
         Parameters
         ----------
-        controller : programmer object
-            programmer connected to the heating stage whose temperature is read 
         interval : int, optional
-            time interval between readings. The default is 1.
+            time interval in seconds between each log. The default is 1.
         file : string, optional
-            file where temperature is saved as a function of time. The default is None.
+            path of the file where to store data. The default is 'datalog.csv'.
 
         Returns
         -------
@@ -309,34 +295,40 @@ class monitoring(object):
 
         """
         self.interval = interval
-        self.controller = controller
-        
         self.file = file
-        if type(self.file)== str:
-            self.csv_file = open(self.file, "w")
-            
-        self.record = False
-        thread = threading.Thread(target=self.run, args=())
+        
+        thread = threading.Thread(target=self.log, args=())
         thread.daemon = True                            # Daemonize thread
         thread.start()                                  # Start the execution
+        
+    def log(self):
+        """
+        method run in the data logging thread
 
-    def run(self):
-        """ Method that runs forever """
+        Returns
+        -------
+        None.
+
+        """
         i = 0
-        while self.record:
+        while self.ser.is_open:
             if i ==0: 
                 t0 = time.time()
             delta_t = time.time() - t0
             
             # get the T byte once per time step
-            self.controller.get_T_bytes()
+            self.get_T_bytes()
             # decode T byte
             T_C = self.decode_temperature()
             status = self.decode_status_byte()
             error = self.decode_error_byte()
-            
             #save to file
-            if self.file: 
-                self.csv_file.write(f"{delta_t}, {T_C}, {status}, {error}\n")
+            csv_file = open(self.file, "a")
+            csv_file.write(f"{delta_t}, {T_C}, {status}, {error}\n")
+            csv_file.close()
             sleep(self.interval)
             i+=1
+            
+    def __del__(self):
+        self.ser.close()
+        print('serial connection off')
