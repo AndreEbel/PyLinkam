@@ -33,9 +33,9 @@ class programmer(object):
                                 baudrate=19200,
                                 bytesize=8,
                                 stopbits = serial.STOPBITS_ONE,         
-                                timeout=0.01,
+                                timeout=0.01, 
                                 parity=serial.PARITY_NONE,
-                                rtscts=1)
+                                rtscts=True)
         #self.get_T_bytes()
         # initialize limit and rate 
         #self.set_limit(1)
